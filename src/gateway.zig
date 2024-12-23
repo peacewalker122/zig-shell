@@ -111,4 +111,24 @@ pub fn gateway(allocator: std.mem.Allocator, args: []u8, _: u8) !void {
             stdout.print("{s} is {s}\n", .{ input[1], val.path }) catch unreachable;
         }
     }
+
+    if (builtin == types.BUILTIN.pwd) {
+        var buffer = try allocator.alloc(u8, 1024);
+
+        while (true) {
+            const cwd = posix.getcwd(buffer) catch |e| {
+                if (e == posix.GetCwdError.NameTooLong) {
+                    buffer = try allocator.realloc(buffer, buffer.len * 2);
+                    continue;
+                }
+
+                std.log.err("Error: {s}", .{@errorName(e)});
+                return;
+            };
+
+            // Successfully retrieved cwd
+            try stdout.print("{s}\n", .{cwd});
+            break;
+        }
+    }
 }
