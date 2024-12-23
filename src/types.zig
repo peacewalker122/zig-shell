@@ -4,6 +4,7 @@ pub const BUILTIN = enum {
     exit,
     cd,
     echo,
+    TYPE,
     invalid,
 
     pub fn assign_enum(val: []const u8) BUILTIN {
@@ -19,6 +20,10 @@ pub const BUILTIN = enum {
             return BUILTIN.echo;
         }
 
+        if (std.mem.eql(u8, val, "type")) {
+            return BUILTIN.TYPE;
+        }
+
         return BUILTIN.invalid;
     }
 
@@ -27,6 +32,7 @@ pub const BUILTIN = enum {
             .exit => true,
             .cd => true,
             .echo => true,
+            .TYPE => true,
             .invalid => false,
         };
     }

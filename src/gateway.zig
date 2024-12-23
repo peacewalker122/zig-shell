@@ -63,4 +63,22 @@ pub fn gateway(allocator: std.mem.Allocator, args: []u8, _: u8) !void {
 
         try stdout.print("\n", .{});
     }
+
+    if (builtin == types.BUILTIN.TYPE) {
+        if (arg.items.len < 2) {
+            return err.ArgumentNotProvidedError;
+        }
+
+        const is_builtin = types.BUILTIN.is_builtin(types.BUILTIN.assign_enum(input[1]));
+
+        if (is_builtin) {
+            try stdout.print("{s} is a shell builtin\n", .{input[1]});
+        } else {
+            const val = try pkg.check(allocator, input[0], paths);
+            if (!val) {
+                try stdout.print("{s}: not found\n", .{input[1]});
+            }
+            // try stdout.print("{s} is not a shell builtin\n", .{input[1]});
+        }
+    }
 }
