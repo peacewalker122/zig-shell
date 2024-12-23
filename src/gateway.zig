@@ -46,7 +46,24 @@ pub fn gateway(allocator: std.mem.Allocator, args: []u8, _: u8) !void {
         const val = try pkg.check(allocator, input[0], paths);
         if (!val.is_executable) {
             try stdout.print("{s}: command not found\n", .{args});
+            return;
         }
+
+        const pid = try posix.fork();
+
+        if (pid == 0) {
+            var arguments = std.ArrayList([]const u8).init(allocator);
+
+            for (input, 0..) |value, i| {
+                _ = i;
+
+                try arguments.append(value);
+            }
+
+            std.process.execv(allocator, arguments.items) catch unreachable;
+        }
+
+        _ = posix.waitpid(pid, 0);
     }
 
     // NOTE: This is where we would handle the builtin commands
