@@ -47,4 +47,20 @@ pub fn gateway(allocator: std.mem.Allocator, args: []u8, _: u8) !void {
         const exit_code = try std.fmt.parseInt(u8, input[1], 10);
         posix.exit(exit_code);
     }
+
+    if (builtin == types.BUILTIN.echo) {
+        if (arg.items.len < 2) {
+            return err.ArgumentNotProvidedError;
+        }
+
+        for (arg.items, 0..) |value, i| {
+            if (i == 0) {
+                continue; // skip 'echo'
+            }
+
+            try stdout.print("{s} ", .{value});
+        }
+
+        try stdout.print("\n", .{});
+    }
 }
