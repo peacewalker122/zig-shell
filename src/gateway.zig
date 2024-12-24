@@ -131,7 +131,13 @@ pub fn gateway(allocator: std.mem.Allocator, args: []u8, _: u8) !void {
             return err.ArgumentNotProvidedError;
         }
 
-        const path = arg.items[1];
+        var path = arg.items[1];
+
+        if (path.len > 0 and path[0] == '~') {
+            const home = try env.get_env(allocator, "HOME");
+
+            path = std.fmt.allocPrint(allocator, "{s}/{s}", .{ home, path[1..] }) catch unreachable;
+        }
 
         var dir = std.fs.cwd().openDir(path, .{}) catch {
             try stdout.print("cd: {s}: No such file or directory\n", .{path});
