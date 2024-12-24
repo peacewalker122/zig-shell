@@ -19,13 +19,6 @@ pub fn gateway(allocator: std.mem.Allocator, args: []u8, _: u8) !void {
         try arg.append(v);
     }
 
-    // var paths = try allocator.alloc([]const u8, 3);
-    // defer allocator.free(paths);
-
-    // // Directly assign the paths
-    // paths[0] = "/bin";
-    // paths[1] = "/usr/bin";
-    // paths[2] = "/usr/local/bin";
     const PATH = try env.get_env(allocator, "PATH");
     defer allocator.free(PATH);
 
@@ -69,7 +62,8 @@ pub fn gateway(allocator: std.mem.Allocator, args: []u8, _: u8) !void {
     // NOTE: This is where we would handle the builtin commands
     if (builtin == types.BUILTIN.exit) {
         if (arg.items.len < 2) {
-            return err.ArgumentNotProvidedError;
+            // assume exit 0
+            posix.exit(0);
         }
 
         const exit_code = try std.fmt.parseInt(u8, input[1], 10);
@@ -130,5 +124,21 @@ pub fn gateway(allocator: std.mem.Allocator, args: []u8, _: u8) !void {
             try stdout.print("{s}\n", .{cwd});
             break;
         }
+    }
+
+    if (builtin == types.BUILTIN.cd) {
+        if (arg.items.len < 2) {
+            return err.ArgumentNotProvidedError;
+        }
+
+        const path = arg.items[1];
+
+        var dir = std.fs.cwd().openDir(path, .{}) catch {
+            try stdout.print("cd: {s}: No such file or directory\n", .{path});
+            return;
+        };
+        defer dir.close();
+
+        try dir.setAsCwd();
     }
 }
